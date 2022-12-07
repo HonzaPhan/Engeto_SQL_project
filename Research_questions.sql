@@ -158,22 +158,23 @@ LIMIT 1; /* We want to know only food category, which has the lowest percentage 
 /*
  *	4. Has there been a year in which the year-on-year increase in food prices was significantly higher than wage growth (higher than 10%)?
  *	
- *	Answer:
+ *	Answer: The values that correspond to the given task can be seen in the comparative years 2010 - 2012 and 2014-2016. We can tell that seen data are after Eurozone debt crisis in 2009.
  *
  *	YoY = year-on-year
  */
 
-SELECT 
-  Year1 AS Year, 
+SELECT DISTINCT 
+  Year1 AS 'Year', 
+  Year2 AS 'Compared_Year',
   Difference_wages AS 'YoY_increase_wages_percentage', 
-  MAX(difference_prices) AS 'YoY_increase_prices_percentage' /*We care only about the highest difference between compared food prices */
+  Difference_prices AS 'YoY_increase_prices_percentage' /*We care only about the highest difference between compared food prices */
 FROM (
     WITH t_long_phan_project_sql_primary_final AS (
       SELECT 
         food_name AS Name1, 
         year_measurement AS Year1, 
         ROUND(AVG(average_food_price), 2) AS Price1, 
-        AVG(average_wage) AS Wage1 
+        ROUND(AVG(average_wage)) AS Wage1 
       FROM 
         t_long_phan_project_sql_primary_final 
       GROUP BY 
@@ -181,11 +182,11 @@ FROM (
         year1
     ), 
     t_long_phan_project_sql_primary_final_2 AS (
-      SELECT 
+      SELECT
         food_name AS Name2, 
         year_measurement AS Year2, 
         ROUND(AVG(average_food_price), 2) AS Price2, 
-        AVG(average_wage) AS Wage2 
+        ROUND(AVG(average_wage)) AS Wage2 
       FROM 
         t_long_phan_project_sql_primary_final_2 
       GROUP BY 
@@ -201,12 +202,13 @@ FROM (
       price1, 
       price2, 
       ROUND((Price2 - Price1) / Price1 * 100, 2) AS Difference_prices, 
-      ROUND((Wage2 - Wage1) / Wage1 * 100, 2) AS Difference_wages 
+      ROUND((Wage2 - Wage1) / Wage1 * 100, 2) AS Difference_wages
     FROM 
       t_long_phan_project_sql_primary_final tlp1 
-    JOIN t_long_phan_project_sql_primary_final_2 tlp2 
+    LEFT JOIN t_long_phan_project_sql_primary_final_2 tlp2 
       	ON Year1 = Year2 - 1 
       	AND Name1 = Name2 
+    WHERE Year1 != 2018 /* In 2018 we do not have any data, so we just use negation*/
     GROUP BY 
       name1, 
       year1, 
@@ -215,16 +217,16 @@ FROM (
       Wage2, 
       price1, 
       price2
-  ) AS diff 
-WHERE 
-  difference_prices > difference_wages AND difference_prices > 10 /* According to task, we filter values that are higher than 10%*/
+  ) AS diff
+  WHERE difference_prices > difference_wages
 GROUP BY 
-  Year1, 
-  difference_wages 
+  Year, 
+  Compared_Year,
+  difference_wages
 ORDER BY 
-  Year1, 
+  Year, 
   Difference_prices;
-
+ 
 /*
  * 	5. Does the level of GDP affect changes in wages and food prices? Or, if the GDP increases more significantly in one year, will this be reflected in food prices or wages in the same or the following year by a more significant increase?
  */
