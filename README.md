@@ -1,9 +1,10 @@
-# Engeto_SQL_project
-V tomto projektu se budu zabývat porovnání dostupnosti potravin široké veřejnosti na základě průměrných příjmů za určité časové období.
+# Engeto project in SQL
+In this project, I will be dealing with food comparisons of the general public based on average incomes over a certain period of time.
 
-**Výzkumné otázky:**
-1. Rostou v průběhu let mzdy ve všech odvětvích, nebo v některých klesají?
-2. Kolik je možné si koupit litrů mléka a kilogramů chleba za první a poslední srovnatelné období v dostupných datech cen a mezd?
-3. Která kategorie potravin zdražuje nejpomaleji (je u ní nejnižší percentuální meziroční nárůst)?
-4. Existuje rok, ve kterém byl meziroční nárůst cen potravin výrazně vyšší než růst mezd (větší než 10 %)?
-5. Má výška HDP vliv na změny ve mzdách a cenách potravin? Neboli, pokud HDP vzroste výrazněji v jednom roce, projeví se to na cenách potravin či mzdách ve stejném nebo násdujícím roce výraznějším růstem?
+**Reseach questions:**
+1. Have wages been rising in all industries over the years, or falling?
+2. How many liters of milk and kilograms of bread can be bought in the first and last comparable periods in the available price and wage dataset?
+3. Which food category is increasing in a price the slowest (has the lowest percentage of year-on-year increase)?
+4. Has there been a year in which the year-on-year increase in food prices was significantly higher than wage growth (greater than 10%)?
+5. Does the level of GDP affect changes in wages and food prices? Or, if the GDP increases more significantly in one year, will this be reflected in food prices or wages in the same or the following year by a more significant increase?
+
