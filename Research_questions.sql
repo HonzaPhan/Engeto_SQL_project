@@ -49,7 +49,7 @@ WITH t_long_phan_project_sql_primary_final AS (
     CAST(average_food_price AS decimal (7, 2)) AS Food_price_2006, 
     food_name, 
     year_measurement, 
-    Avg(average_wage) AS Average_Wage_2006,
+    AVG(average_wage) AS Average_Wage_2006,
     price_unit AS Unit
   FROM 
     t_long_phan_project_sql_primary_final 
@@ -69,7 +69,7 @@ t_long_phan_project_sql_primary_final_2 AS (
     CAST(average_food_price AS decimal (7, 2)) AS Food_price_2018, 
     food_name, 
     year_measurement, 
-    Avg(average_wage) AS Average_Wage_2018
+    AVG(average_wage) AS Average_Wage_2018
   FROM 
     t_long_phan_project_sql_primary_final_2 
   WHERE 
@@ -88,8 +88,8 @@ SELECT
   Food_price_2018, 
   Average_Wage_2006, 
   Average_Wage_2018, 
-  Round(Average_Wage_2006 / Food_price_2006) AS Amount_2006, 
-  Round(Average_Wage_2018 / Food_price_2018) AS Amount_2018,
+  ROUND(Average_Wage_2006 / Food_price_2006) AS Amount_2006, 
+  ROUND(Average_Wage_2018 / Food_price_2018) AS Amount_2018,
   Unit
 FROM 
   t_long_phan_project_sql_primary_final tlp1 
@@ -105,15 +105,125 @@ GROUP BY
  
 /*
  *	3. Which food category is increasing in a price the slowest (has the lowest percentage of year-on-year increase)?
+ *
+ *	Answer: Food category with the slowest year-on-year growth is granulated Sugar ("Krystalový cukr").
+ *
+ *	YoY = year-on-year
  */
 
-
+SELECT 
+  growth.food_name AS 'Name_of_food', 
+  ROUND(AVG(growth.Difference_prices), 2) AS 'YoY_growth', 
+  growth.Unit 
+FROM ( 
+	WITH t_long_phan_project_sql_primary_final AS (
+      SELECT DISTINCT 
+      	food_name, 
+        average_food_price, 
+        year_measurement, 
+        price_unit 
+      FROM 
+        t_long_phan_project_SQL_primary_final
+    ), 
+    t_long_phan_project_sql_primary_final_2 AS (
+      SELECT DISTINCT 
+      	food_name, 
+        average_food_price, 
+        year_measurement, 
+        price_unit 
+      FROM 
+        t_long_phan_project_SQL_primary_final_2
+    ) 
+    SELECT DISTINCT 
+    	tlp1.food_name, 
+     	ROUND((tlp2.average_food_price - tlp1.average_food_price) / tlp1.average_food_price * 100, 2) AS Difference_prices, 
+     	tlp1.year_measurement AS Year_1, 
+     	tlp2.year_measurement AS Year_2, 
+     	tlp1.price_unit AS Unit 
+    FROM 
+      t_long_phan_project_sql_primary_final tlp1 
+    JOIN t_long_phan_project_sql_primary_final_2 tlp2 
+    	ON tlp1.food_name = tlp2.food_name 
+     	AND tlp1.year_measurement = tlp2.year_measurement - 1 
+    ORDER BY 
+      Difference_prices
+   ) AS Growth 
+GROUP BY 
+  growth.food_name, 
+  growth.unit 
+ORDER BY 
+  AVG(Difference_prices) 
+LIMIT 1; /* We want to know only food category, which has the lowest percentage of growth */
 
 /*
- *	4. Has there been a year in which the year-on-year increase in food prices was significantly higher than wage growth (greater than 10%)?
+ *	4. Has there been a year in which the year-on-year increase in food prices was significantly higher than wage growth (higher than 10%)?
+ *	
+ *	Answer:
+ *
+ *	YoY = year-on-year
  */
-  
 
+SELECT 
+  Year1 AS Year, 
+  Difference_wages AS 'YoY_increase_wages_percentage', 
+  MAX(difference_prices) AS 'YoY_increase_prices_percentage' /*We care only about the highest difference between compared food prices */
+FROM (
+    WITH t_long_phan_project_sql_primary_final AS (
+      SELECT 
+        food_name AS Name1, 
+        year_measurement AS Year1, 
+        ROUND(AVG(average_food_price), 2) AS Price1, 
+        AVG(average_wage) AS Wage1 
+      FROM 
+        t_long_phan_project_sql_primary_final 
+      GROUP BY 
+        name1, 
+        year1
+    ), 
+    t_long_phan_project_sql_primary_final_2 AS (
+      SELECT 
+        food_name AS Name2, 
+        year_measurement AS Year2, 
+        ROUND(AVG(average_food_price), 2) AS Price2, 
+        AVG(average_wage) AS Wage2 
+      FROM 
+        t_long_phan_project_sql_primary_final_2 
+      GROUP BY 
+        name2, 
+        year2
+    ) 
+    SELECT 
+      name1, 
+      year1, 
+      year2, 
+      Wage1, 
+      Wage2, 
+      price1, 
+      price2, 
+      ROUND((Price2 - Price1) / Price1 * 100, 2) AS Difference_prices, 
+      ROUND((Wage2 - Wage1) / Wage1 * 100, 2) AS Difference_wages 
+    FROM 
+      t_long_phan_project_sql_primary_final tlp1 
+    JOIN t_long_phan_project_sql_primary_final_2 tlp2 
+      	ON Year1 = Year2 - 1 
+      	AND Name1 = Name2 
+    GROUP BY 
+      name1, 
+      year1, 
+      year2, 
+      Wage1, 
+      Wage2, 
+      price1, 
+      price2
+  ) AS diff 
+WHERE 
+  difference_prices > difference_wages AND difference_prices > 10 /* According to task, we filter values that are higher than 10%*/
+GROUP BY 
+  Year1, 
+  difference_wages 
+ORDER BY 
+  Year1, 
+  Difference_prices;
 
 /*
  * 	5. Does the level of GDP affect changes in wages and food prices? Or, if the GDP increases more significantly in one year, will this be reflected in food prices or wages in the same or the following year by a more significant increase?
