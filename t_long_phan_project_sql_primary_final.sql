@@ -8,7 +8,7 @@ OR REPLACE TABLE t_long_phan_project_sql_primary_final AS WITH food_prices AS (
     cpc.price_value, 
     cpc.price_unit, 
     avg(cp.value) AS average_food_price, 
-    year(cp.date_from) AS year_of_measurement 
+    year(cp.date_from) AS year_measurement
   FROM 
     czechia_price cp 
     LEFT JOIN czechia_price_category cpc ON cp.category_code = cpc.code 
@@ -19,13 +19,13 @@ OR REPLACE TABLE t_long_phan_project_sql_primary_final AS WITH food_prices AS (
     cpc.price_value, 
     cpc.code, 
     cpc.price_unit, 
-    year_of_measurement
+    year_measurement
 ), 
 wage AS (
   SELECT 
-    avg(czp.value) AS average_wage_per_industry_branch, 
-    cpib.code AS industry_branch_code, 
-    cpib.NAME AS industry_branch_name, 
+    avg(czp.value) AS average_wage, 
+    cpib.code AS branch_code, 
+    cpib.NAME AS branch_name, 
     czp.payroll_year 
   FROM 
     czechia_payroll czp 
@@ -34,25 +34,26 @@ wage AS (
     czp.value_type_code = 5958 /* Average gross salary per employee */ 
     AND czp.calculation_code = 100 /* Type of calculation of the wage */
   GROUP BY 
-    industry_branch_name, 
+    branch_name, 
     czp.payroll_year, 
     cpib.code
 ) 
 SELECT 
-  fp.year_of_measurement, 
+  w.branch_code,
+  w.branch_name,
+  w.average_wage, 
+  fp.year_measurement, 
   e.gdp, 
   fp.code AS food_category_code, 
   fp.food_name, 
   fp.average_food_price, 
   fp.price_value, 
-  fp.price_unit, 
-  w.average_wage_per_industry_branch, 
-  w.industry_branch_code, 
-  w.industry_branch_name 
+  fp.price_unit 
+  
 FROM 
   food_prices fp 
-  LEFT JOIN wage w ON fp.year_of_measurement = w.payroll_year 
-  LEFT JOIN economies e ON year_of_measurement = e.`year` 
+  LEFT JOIN wage w ON fp.year_measurement = w.payroll_year 
+  LEFT JOIN economies e ON year_measurement = e.`year` 
   AND e.country = 'Czech republic' 
 ORDER BY 
-  fp.year_of_measurement;
+  fp.year_measurement;
