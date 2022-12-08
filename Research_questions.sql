@@ -183,52 +183,95 @@ FROM (
     ), 
     t_long_phan_project_sql_primary_final_2 AS (
       SELECT
-        food_name AS Name2, 
-        year_measurement AS Year2, 
-        ROUND(AVG(average_food_price), 2) AS Price2, 
-        ROUND(AVG(average_wage)) AS Wage2 
+      	food_name AS Name2, 
+      	year_measurement AS Year2, 
+      	ROUND(AVG(average_food_price), 2) AS Price2, 
+      	ROUND(AVG(average_wage)) AS Wage2 
       FROM 
-        t_long_phan_project_sql_primary_final_2 
+      	t_long_phan_project_sql_primary_final_2 
       GROUP BY 
-        name2, 
-        year2
+      	name2, 
+      	year2
     ) 
     SELECT 
-      name1, 
-      year1, 
-      year2, 
-      Wage1, 
-      Wage2, 
-      price1, 
-      price2, 
-      ROUND((Price2 - Price1) / Price1 * 100, 2) AS Difference_prices, 
-      ROUND((Wage2 - Wage1) / Wage1 * 100, 2) AS Difference_wages
+    	name1, 
+    	year1, 
+    	year2, 
+    	Wage1, 
+    	Wage2, 
+    	price1, 
+    	price2, 
+    	ROUND((Price2 - Price1) / Price1 * 100, 2) AS Difference_prices, 
+    	ROUND((Wage2 - Wage1) / Wage1 * 100, 2) AS Difference_wages
     FROM 
-      t_long_phan_project_sql_primary_final tlp1 
+    	t_long_phan_project_sql_primary_final tlp1 
     LEFT JOIN t_long_phan_project_sql_primary_final_2 tlp2 
-      	ON Year1 = Year2 - 1 
-      	AND Name1 = Name2 
-    WHERE Year1 != 2018 /* In 2018 we do not have any data, so we just use negation*/
+    	ON Year1 = Year2 - 1 
+    	AND Name1 = Name2 
+    WHERE 
+    	Year1 != 2018 /* In 2018 we do not have any data, so we just use negation*/
     GROUP BY 
-      name1, 
-      year1, 
-      year2, 
-      Wage1, 
-      Wage2, 
-      price1, 
-      price2
+    	name1, 
+    	year1, 
+    	year2, 
+    	Wage1, 
+    	Wage2, 
+    	price1, 
+    	price2
   ) AS diff
-  WHERE difference_prices > difference_wages
+WHERE 
+	Difference_prices > Difference_wages
 GROUP BY 
-  Year, 
-  Compared_Year,
-  difference_wages
+	Year, 
+	Compared_Year,
+	Difference_wages
 ORDER BY 
-  Year, 
-  Difference_prices;
+	Year, 
+	Difference_prices;
  
 /*
  * 	5. Does the level of GDP affect changes in wages and food prices? Or, if the GDP increases more significantly in one year, will this be reflected in food prices or wages in the same or the following year by a more significant increase?
+ * 
+ * 	Answer: The data shows that there is some correlation between these values, but there are large deviations, and therefore it cannot be concluded that a significant increase in GDP will necessarily be reflected in price or wage growth in the following year.
  */
+CREATE 
+OR REPLACE VIEW v_lp_all_difference AS WITH t_long_phan_project_SQL_primary_final AS (
+	SELECT 
+	    year_measurement, 
+	    GDP, 
+	    ROUND(AVG(average_food_price),2) AS avg_food_price, 
+	    ROUND(AVG(average_wage)) AS avg_wage 
+	FROM 
+	    t_long_phan_project_SQL_primary_final 
+	WHERE 
+		average_wage IS NOT NULL 
+		AND average_food_price IS NOT NULL 
+	GROUP BY 
+		year_measurement
+	) 
+	SELECT 
+		year_measurement, 
+		avg_food_price, 
+		avg_wage, 
+		gdp, 
+		LAG(GDP) OVER (ORDER BY year_measurement) AS GDP_last_year, 
+	 	LAG(avg_wage) OVER (ORDER BY year_measurement) AS avg_wage_last_year, 
+	 	LAG(avg_food_price) OVER (ORDER BY year_measurement) AS avg_food_price_last_year 
+	FROM 
+		t_long_phan_project_SQL_primary_final;
+	
+SELECT
+	year_measurement AS 'Year', 
+	gdp, 
+	GDP_last_year, 
+	ROUND((GDP - GDP_last_year) / GDP * 100, 2) AS GDP_in_percentages, 
+	ROUND((avg_food_price - avg_food_price_last_year) / avg_food_price * 100, 2) AS AVG_food_prices_difference_in_percentages, 
+	ROUND((avg_wage - avg_wage_last_year) / avg_wage * 100, 2) AS AVG_Wage_difference_in_percentages 
+FROM 
+	v_lp_all_difference 
+WHERE 
+	GDP_last_year IS NOT NULL 
+ORDER BY 
+	'Year';
 
 
