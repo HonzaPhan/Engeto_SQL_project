@@ -5,7 +5,7 @@ OR REPLACE TABLE t_long_phan_project_SQL_secondary_final AS (
   SELECT DISTINCT 
   	e.country, 
     c.country, 
-    e.`year`, 
+    e.`Year`, 
     tlp.year_measurement, 
     e.GDP, 
     e.gini, 
@@ -13,12 +13,12 @@ OR REPLACE TABLE t_long_phan_project_SQL_secondary_final AS (
   FROM 
     economies e 
     LEFT JOIN countries c ON e.country = c.country 
-    LEFT JOIN t_long_phan_project_sql_primary_final tlp ON e.`year` = tlp.year_measurement
+    LEFT JOIN t_long_phan_project_sql_primary_final tlp ON e.`Year` = tlp.year_measurement
   WHERE 
     c.continent = 'Europe' 
     AND c.country != 'Czech Republic' 
-    AND e.`year` BETWEEN 2006 AND 2018 
+    AND e.`Year` BETWEEN 2006 AND 2018 
   ORDER BY 
-    e.`year`, 
+    e.`Year`, 
     GDP DESC
 );
