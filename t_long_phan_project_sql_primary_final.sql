@@ -1,4 +1,4 @@
-/* Primary tables (food prices and wages by branches) serving as the dataset for the research questions */
+/* Primary table (food prices and wages by branches) serving as the dataset for the research questions */
 
 CREATE 
 OR REPLACE TABLE t_long_phan_project_sql_primary_final AS WITH food_prices AS (
@@ -7,8 +7,8 @@ OR REPLACE TABLE t_long_phan_project_sql_primary_final AS WITH food_prices AS (
     cpc.code, 
     cpc.price_value, 
     cpc.price_unit, 
-    avg(cp.value) AS average_food_price, 
-    year(cp.date_from) AS year_measurement
+    AVG(cp.value) AS average_food_price, 
+    YEAR(cp.date_from) AS year_measurement
   FROM 
     czechia_price cp 
     LEFT JOIN czechia_price_category cpc ON cp.category_code = cpc.code 
@@ -23,7 +23,7 @@ OR REPLACE TABLE t_long_phan_project_sql_primary_final AS WITH food_prices AS (
 ), 
 wage AS (
   SELECT 
-    avg(czp.value) AS average_wage, 
+    AVG(czp.value) AS average_wage, 
     cpib.code AS branch_code, 
     cpib.NAME AS branch_name, 
     czp.payroll_year 
