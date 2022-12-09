@@ -2,7 +2,7 @@
 <p>In this project, I will be dealing with food comparisons of the general public based on average incomes over a certain period of time.</p>
 
 <h3>Data sets that can be used to obtain a suitable data base</h3>
-
+<p>The data set comes from the <a href = "https://data.gov.cz/english/"> Open Data Portal of the Czech Republic </a></p> 
 <b>Primary tables:</b>
 <ul>
   <li>czechia_payroll – Information on wages in various sectors over a period of several years. The data set comes from the Open Data Portal of the Czech Republic </li>
